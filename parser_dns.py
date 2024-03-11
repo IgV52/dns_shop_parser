@@ -5,11 +5,14 @@ from fake_useragent import UserAgent
 from httpx import AsyncClient, RequestError, Response as httpx_Response
 from seleniumwire.webdriver import Chrome, ChromeOptions
 from seleniumwire.request import Request as sw_Request
-from typing import AsyncGenerator, Iterable
+from typing import AsyncGenerator, Iterable, TypeVar
 
 from constants import DNS_SHOP, COOKIES_ARE, PRODUCTS_LINKS
 
 import asyncio
+
+
+T = TypeVar('T', list[str], list[dict[str, str]])
 
 
 class ParserDnsShop:
@@ -146,31 +149,22 @@ class ParserDnsShop:
         return links
 
     async def __get_batch_request_and_reload_cookie(
-        self, data: list[str] | list[dict[str, str]]
-    ) -> AsyncGenerator[list[str] | list[dict[str, str]], None]:
-        offset = 0
-        step = self.max_request
-        batch = data[offset:step]
+        self, data: T
+    ) -> AsyncGenerator[T, None]:
 
-        await self._driver_run(url=DNS_SHOP)
+        for start in range(0, len(data), self.max_request):
 
-        while batch:
-
-            yield batch
-
-            if not (step % 12000) and offset:
+            if not (start % 12000):
                 await self._driver_run(url=DNS_SHOP)
 
-            offset += self.max_request
-            step += self.max_request
-            batch = data[offset:step]
+            yield data[start:start + self.max_request]
 
     async def get_all_guid_product(self, data: list[str]) -> list[dict[str, str]]:
         result = []
 
         async for batch in self.__get_batch_request_and_reload_cookie(data=data):
 
-            response = await self._create_request(urls=batch, cookie=self.cookie)  # type: ignore
+            response = await self._create_request(urls=batch, cookie=self.cookie)
 
             result.extend(self._parse_guid(data=response))
 

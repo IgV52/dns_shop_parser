@@ -1,4 +1,3 @@
-SITYMAP = "https://www.dns-shop.ru/sitemap.xml"
 DNS_SHOP = "https://www.dns-shop.ru/"
 PRODUCTS_LINKS = (
     "https://www.dns-shop.ru/products1.xml",
