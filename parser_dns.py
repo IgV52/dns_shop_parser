@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from fake_useragent import UserAgent
-from httpx import AsyncClient, RequestError, Response as httpx_Response
+from httpx import AsyncClient, RequestError, ReadTimeout, Response as httpx_Response, ConnectTimeout
 from seleniumwire.webdriver import Chrome, ChromeOptions
 from seleniumwire.request import Request as sw_Request
 from typing import AsyncGenerator, Iterable, TypeVar
@@ -21,12 +21,38 @@ class ParserDnsShop:
         self.ua = UserAgent()
         self.cookie: dict[str, str] = {COOKIES_ARE: ""}
         self.max_request = 24
-        self.time_sleep_selenium = 3
+        self.time_sleep_selenium = 2
+        self.__auto_update_trigger = False
+        self.__time_sleep_done = True
+        self.__update_cookies_task = None
 
     def _run_driver(
         self, options: dict[str, ChromeOptions | dict[str, str | int]]
     ) -> Chrome:
         return Chrome(**options)
+
+    async def while_update_cookies(self) -> None:
+        while self.__auto_update_trigger:
+            if not self.cookie[COOKIES_ARE] or self.__time_sleep_done:
+                await self._driver_run(url=DNS_SHOP)
+            else:
+                await asyncio.sleep(11*60)
+                self.__time_sleep_done = True
+
+    @asynccontextmanager
+    async def auto_update_cookies(self) -> AsyncGenerator[None, None]:
+        try:
+            while not self.cookie[COOKIES_ARE]:
+                await self._driver_run(url=DNS_SHOP)
+
+            self.__auto_update_trigger = True
+            self.__update_cookies_task = asyncio.create_task(self.while_update_cookies())
+            yield
+        finally:
+            assert self.__update_cookies_task is not None
+
+            self.__auto_update_trigger = False
+            self.__update_cookies_task.cancel()
 
     @asynccontextmanager
     async def get_driver(
@@ -95,7 +121,7 @@ class ParserDnsShop:
                                 )
                             )
                         )
-            except RequestError as err:
+            except (RequestError, ReadTimeout, ConnectTimeout) as err:
                 raise Exception(f"Произошла ошибка - {err}")
 
         return tuple(response for i in result if (response := i.result()) and response.status_code == 200)
@@ -126,8 +152,9 @@ class ParserDnsShop:
         return result
 
     def __request_interceptor(self, request: sw_Request) -> None:
-        if request.url == DNS_SHOP:
-            self.cookie[COOKIES_ARE] = str(request.headers["Cookie"])
+        if request.url == DNS_SHOP and (cookies := str(request.headers["Cookie"])):
+            self.cookie[COOKIES_ARE] = cookies
+            self.__time_sleep_done = False
 
     async def _driver_run(self, url: str) -> None:
         loop = asyncio.get_running_loop()
@@ -137,14 +164,9 @@ class ParserDnsShop:
             driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": self.ua.chrome})
             await asyncio.sleep(self.time_sleep_selenium)
 
-    async def get_all_links_product(self) -> list[str] | None:
-        links = None
-
-        await self._driver_run(url=DNS_SHOP)
-
-        if self.cookie[COOKIES_ARE]:
-            response = await self._create_request(PRODUCTS_LINKS, cookie=self.cookie)
-            links = self._parse_xml(data=tuple(i.text for i in response))
+    async def get_all_links_product(self) -> list[str]:
+        response = await self._create_request(PRODUCTS_LINKS, cookie=self.cookie)
+        links = self._parse_xml(data=tuple(i.text for i in response))
 
         return links
 
@@ -153,10 +175,6 @@ class ParserDnsShop:
     ) -> AsyncGenerator[T, None]:
 
         for start in range(0, len(data), self.max_request):
-
-            if not (start % 12000):
-                await self._driver_run(url=DNS_SHOP)
-
             yield data[start:start + self.max_request]
 
     async def get_all_guid_product(self, data: list[str]) -> list[dict[str, str]]:

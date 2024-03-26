@@ -1,6 +1,7 @@
 # Модуль для парсинга dns-shop.ru
 
 ## <br><b>Тех.данные</b>
+<br><b>Перед началом парсинга нужно получить cookie, способ получения cookie показан в example.py</b><br>
 <b>Метод - get_all_links_product()</b>
 <br>возвращает все ссылки на продукты из
 <br>("https://www.dns-shop.ru/products1.xml","https://www.dns-shop.ru/products2.xml","https://www.dns-shop.ru/products3.xml")
@@ -62,5 +63,5 @@
 ]
 ```
 
-Примерное время парсинга всех товаром 2 часа +- 20минут
+Примерное время парсинга всех товаром 1 час +- 20минут
 

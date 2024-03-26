@@ -7,10 +7,10 @@ import time
 async def main() -> None:
     parser = ParserDnsShop()
     start = time.monotonic()
-    links = await parser.get_all_links_product()
 
-    if links:
-        data = await parser.get_all_guid_product(links[:25000])
+    async with parser.auto_update_cookies():
+        links = await parser.get_all_links_product()
+        data = await parser.get_all_guid_product(links)
         result = await parser.get_all_info_product(data)
 
         print(f"Количество товаров - {len(result)}")
