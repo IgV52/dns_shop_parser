@@ -107,24 +107,26 @@ class ParserDnsShop:
         self, urls: Iterable[str], cookie: dict[str, str]
     ) -> tuple[httpx_Response, ...]:
         result = []
+        task = []
 
         async with AsyncClient() as client:
-            try:
-                async with asyncio.TaskGroup() as tg:
-
-                    for url in urls:
-                        result.append(
-                            tg.create_task(
-                                client.get(
-                                    url=url,
-                                    cookies=cookie,
-                                )
-                            )
+            for url in urls:
+                result.append(
+                    asyncio.create_task(
+                        client.get(
+                            url=url,
+                            cookies=cookie,
                         )
+                    )
+                )
+            try:
+                for item in await asyncio.gather(*task):
+                    if item.status_code == 200:
+                        result.append(item)
             except (RequestError, ReadTimeout, ConnectTimeout) as err:
-                raise Exception(f"Произошла ошибка - {err}")
+                print(f"Произошла ошибка - {err}")
 
-        return tuple(response for i in result if (response := i.result()) and response.status_code == 200)
+        return tuple(result)
 
     def _parse_xml(self, data: tuple[str, ...]) -> list[str]:
         links = []
