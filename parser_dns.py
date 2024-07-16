@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from contextlib import asynccontextmanager
 from fake_useragent import UserAgent
 from httpx import AsyncClient, RequestError, ReadTimeout, Response as httpx_Response, ConnectTimeout
-from DrissionPage import ChromiumPage
+from DrissionPage import ChromiumPage, ChromiumOptions
 from typing import AsyncGenerator, Iterable, TypeVar
 
 from constants import DNS_SHOP, COOKIES_ARE, PRODUCTS_LINKS
@@ -17,7 +17,6 @@ T = TypeVar('T', list[str], list[dict[str, str]])
 class ParserDnsShop:
 
     def __init__(self) -> None:
-        self.ua = UserAgent().chrome
         self.cookie: dict[str, str] = {COOKIES_ARE: ""}
         self.max_request = 24
         self.time_sleep_selenium = 2
@@ -53,6 +52,13 @@ class ParserDnsShop:
     def get_cookies(self) -> str:
         try:
             cookie = ""
+            chrome_options = ChromiumOptions()
+            chrome_options.headless()
+            chrome_options.set_argument(arg="--no-sandbox")
+            chrome_options.set_argument(arg="--enable-javascript")
+            chrome_options.set_argument(arg="--window-size=200,100")
+            chrome_options.set_user_agent(user_agent=UserAgent().chrome)
+            page = ChromiumPage(addr_or_opts=chrome_options)
             page = ChromiumPage()
             page.get(DNS_SHOP, timeout=3)
             time.sleep(self.time_sleep_selenium)
