@@ -18,7 +18,6 @@ class ParserDnsShop:
     def __init__(self) -> None:
         self.cookie: dict[str, str] = {COOKIES_ARE: ""}
         self.max_request = 24
-        self.time_sleep_selenium = 2
         self.__auto_update_trigger = False
         self.__update_cookies_task = None
         self.__lock = asyncio.Lock()
@@ -52,6 +51,7 @@ class ParserDnsShop:
         try:
             cookie = ""
             chrome_options = ChromiumOptions()
+
             chrome_options.set_argument(arg="--headless=new")
             chrome_options.set_argument(arg="--no-sandbox")
             chrome_options.set_argument(arg="--enable-javascript")
@@ -73,6 +73,7 @@ class ParserDnsShop:
                     delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
                 """,
             )
+
             page.run_cdp_loaded(
                 cmd="Network.setUserAgentOverride",
                 userAgent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.3",
