@@ -7,7 +7,6 @@ from typing import AsyncGenerator, Iterable, TypeVar
 from constants import DNS_SHOP, COOKIES_ARE, SITEMAP_LINK
 
 import asyncio
-import time
 
 
 T = TypeVar("T", list[str], list[dict[str, str]])
@@ -79,8 +78,6 @@ class ParserDnsShop:
                 userAgent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.3",
             )
             page.get(DNS_SHOP, timeout=20)
-
-            time.sleep(5)
 
             cookies = page.cookies()
             cookie = "; ".join((f"{item['name']}={item['value']}" for item in cookies))
