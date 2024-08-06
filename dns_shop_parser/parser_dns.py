@@ -1,35 +1,40 @@
+from asyncio import create_task, gather, get_running_loop, Lock, sleep as aio_sleep
 from bs4 import BeautifulSoup
 from contextlib import asynccontextmanager
 from httpx import AsyncClient, RequestError, ReadTimeout, Response as httpx_Response, ConnectTimeout
 from DrissionPage import ChromiumPage, ChromiumOptions
 from typing import AsyncGenerator, Iterable, TypeVar
+from time import sleep
+from logging import getLogger
 
-from constants import DNS_SHOP, COOKIES_ARE, SITEMAP_LINK
+from dns_shop_parser.constants import DNS_SHOP_CATALOG, COOKIES_ARE, SITEMAP
+from dns_shop_parser.logging_module import init_logger
 
-import asyncio
 
-
+logger = getLogger("dns_shop_parser")
 T = TypeVar("T", list[str], list[dict[str, str]])
 
 
 class ParserDnsShop:
 
-    def __init__(self) -> None:
+    def __init__(self, url: str, proxy: str | None = None) -> None:
+        self.url = url
         self.cookie: dict[str, str] = {COOKIES_ARE: ""}
         self.max_request = 24
+        self.loop = get_running_loop()
+        self.logging_task = create_task(init_logger())
+        self._client = AsyncClient(proxy=proxy)
         self.__auto_update_trigger = False
         self.__update_cookies_task = None
-        self.__lock = asyncio.Lock()
+        self.__lock = Lock()
 
     async def while_update_cookies(self) -> None:
-        self.loop = asyncio.get_running_loop()
-
         while self.__auto_update_trigger:
             async with self.__lock:
                 while not self.cookie[COOKIES_ARE]:
                     self.cookie[COOKIES_ARE] = await self.loop.run_in_executor(None, self.get_cookies)
 
-            await asyncio.sleep(10 * 60)
+            await aio_sleep(10 * 60)
             self.cookie[COOKIES_ARE] = ""
 
     @asynccontextmanager
@@ -37,12 +42,12 @@ class ParserDnsShop:
         self.__auto_update_trigger = True
 
         try:
-            self.__update_cookies_task = asyncio.create_task(self.while_update_cookies())
-            await asyncio.sleep(10)
+            self.__update_cookies_task = create_task(self.while_update_cookies())
+            await aio_sleep(10)
             yield
         finally:
             assert self.__update_cookies_task is not None
-
+            await self._client.aclose()
             self.__auto_update_trigger = False
             self.__update_cookies_task.cancel()
 
@@ -77,7 +82,9 @@ class ParserDnsShop:
                 cmd="Network.setUserAgentOverride",
                 userAgent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.3",
             )
-            page.get(DNS_SHOP, timeout=20)
+
+            page.get(f"{self.url}{DNS_SHOP_CATALOG}", timeout=5)
+            sleep(3)
 
             cookies = page.cookies()
             cookie = "; ".join((f"{item['name']}={item['value']}" for item in cookies))
@@ -93,15 +100,12 @@ class ParserDnsShop:
         result = []
 
         async with self.__lock:
-            async with AsyncClient() as client:
-                tasks = [asyncio.create_task(client.get(url=url, cookies=cookie)) for url in urls]
-
-                try:
-                    for item in await asyncio.gather(*tasks):
-                        if item.status_code == 200:
-                            result.append(item)
-                except (RequestError, ReadTimeout, ConnectTimeout) as err:
-                    print(f"Произошла ошибка - {err}")
+            try:
+                for item in await gather(*(create_task(self._client.get(url=url, cookies=cookie)) for url in urls)):
+                    if item.status_code == 200:
+                        result.append(item)
+            except (RequestError, ReadTimeout, ConnectTimeout) as err:
+                logger.exception(err)
 
         return tuple(result)
 
@@ -116,7 +120,7 @@ class ParserDnsShop:
 
                 if url_link:
                     if sitemap:
-                        if url_link.startswith("https://www.dns-shop.ru/products"):
+                        if url_link.startswith(f"{self.url}products"):
                             links.append(url_link)
 
                     else:
@@ -132,12 +136,12 @@ class ParserDnsShop:
             block = soup.find("div", {"class": "container product-card"})
 
             if block:
-                result.append({"url": str(item.request.url), "guid": block["data-product-card"]})  # type: ignore
+                result.append({"url": str(item.request.url), "guid": block["data-product-card"]})
 
         return result
 
     async def get_all_links_product(self) -> list[str]:
-        sitemap_response = await self._create_request((SITEMAP_LINK,), cookie=self.cookie)
+        sitemap_response = await self._create_request((f"{self.url}{SITEMAP}",), cookie=self.cookie)
         sitemap_links = await self.loop.run_in_executor(
             None, self._parse_xml, tuple(i.text for i in sitemap_response), True
         )
@@ -172,7 +176,7 @@ class ParserDnsShop:
             urls = []
 
             for item in batch:
-                urls.append(f"https://www.dns-shop.ru/product/microdata/{item['guid']}/")
+                urls.append(f"{self.url}product/microdata/{item['guid']}/")
 
             response = await self._create_request(urls=urls, cookie=self.cookie)
 
@@ -187,7 +191,7 @@ class ParserDnsShop:
                         "description": data_resp["data"]["description"],
                     }
 
-            await asyncio.sleep(0.4)
+            await aio_sleep(0.4)
 
         for item in data:
             if resp_data := response_data.get(item["url"]):

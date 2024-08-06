@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>http://test/products.xml</loc>
+    <lastmod>2024-10-30</lastmod>
+    <changefreq>hourly</changefreq>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.dns-shop.ru/category1.xml</loc>
+    <lastmod>2024-10-30</lastmod>
+    <changefreq>weekly</changefreq>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.dns-shop.ru/compare1.xml</loc>
+    <lastmod>2024-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.dns-shop.ru/shops1.xml</loc>
+    <lastmod>2024-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.dns-shop.ru/others1.xml</loc>
+    <lastmod>2024-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.dns-shop.ru/old_products1.xml</loc>
+    <lastmod>2024-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+  </sitemap>
+</sitemapindex>

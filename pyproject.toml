@@ -1,0 +1,19 @@
+[project]
+name = "dns_shop_parser"
+version = "0.1"
+requires-python = ">=3.11"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: Linux"
+]
+dynamic = ["dependencies"]
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+dependencies = { file = [
+    "requirements.txt"
+]}

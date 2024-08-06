@@ -1,0 +1,35 @@
+{
+    "result": true, 
+    "data": {
+        "@context": "https://schema.org/", 
+        "@type": "Product", 
+        "name": "Накладка  Aceline Liquid Silicone для Apple iPhone 13 Pro бежевый", 
+        "description": "Накладка Aceline Liquid Silicone – легкий, прочный и приятный на ощупь аксессуар. Он станет стильным дополнением к смартфону Apple iPhone 13 Pro и предотвратит появление различных повреждений. Чехол изготовлен из поликарбоната и силикона бежевого цвета, поэтому отличается гибкостью и практичностью. Благодаря амортизационным свойствам Aceline Liquid Silicone помогает сохранить целостность корпуса мобильного устройства в случае падений с небольшой высоты. В накладке предусмотрены все необходимые вырезы и выступы кнопок с учетом особенностей данной модели смартфона, что гарантирует свободный доступ к функциональным разъемам и комфорт в использовании.", 
+        "sku": "5404063", 
+        "offers": {
+            "@type": "Offer", 
+            "url": "https://www.dns-shop.ru/product/00051854bcb6ed20/nakladka--aceline-liquid-silicone-dla-apple-iphone-13-pro-bezevyj/", 
+            "availability": "https://schema.org/InStock", 
+            "price": 299, 
+            "priceCurrency": "RUB"
+        }, 
+        "aggregateRating": {
+            "@type": "AggregateRating", 
+            "ratingValue": 4.67, 
+            "worstRating": 0, 
+            "bestRating": 5, 
+            "reviewCount": 3
+        }, 
+        "image": [
+            "https://c.dns-shop.ru/thumb/st1/fit/300/300/1852d5b377b8085c09917c315a00a864/ed45f56518667ef11bb7cfe0f73ac46233e2b0173ccfffb729180da05e42c856.jpg", 
+            "https://c.dns-shop.ru/thumb/st1/fit/300/300/cc168dba83a91c731c02659540e14133/b47b1dbdf6d22959e020b42f07ab1d343c7b725907f41a448ce9c4b9e4780815.jpg", 
+            "https://c.dns-shop.ru/thumb/st4/fit/300/300/f405de682a03ba012bb3f760a9660356/519faf8a762bf76bbef66e7bcedbf7847c566d0241f75cc89522a6bdae14657b.jpg"
+        ], 
+        "brand": {
+            "@type": "Brand", 
+            "name": "Aceline"
+        }
+    }, 
+    "message": "", 
+    "errors": []
+}

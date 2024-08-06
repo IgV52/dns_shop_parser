@@ -1,18 +1,33 @@
 # Модуль для парсинга dns-shop.ru
 
-## <br><b>Тех.данные</b>
+<br>
+<details> 
+<summary><b>Тех.данные</b></summary>
 <br><b>Перед началом парсинга нужно получить cookie, способ получения cookie показан в example.py</b><br>
 <b>Метод - get_all_links_product()</b>
 <br>возвращает все ссылки на продукты из
 <br>("https://www.dns-shop.ru/products1.xml","https://www.dns-shop.ru/products2.xml","https://www.dns-shop.ru/products3.xml")
-<br>schema
-```
-["https://www.dns-shop.ru/product/5a74a34171b1ed20/videokarta-kfa2-geforce-rtx-3050-x-black-35nsl8md6yek/", ..., "https://www.dns-shop.ru/product/5a768842a2f48a5a/ibp-powercom-raptor-rpt-1500ap/"]
+<br>
+<br>
+<details>
+<summary><b>schema</b></summary>
 
 ```
+[
+  "https://www.dns-shop.ru/product/5a74a34171b1ed20/videokarta-kfa2-geforce-rtx-3050-x-black-35nsl8md6yek/", 
+  ..., 
+  "https://www.dns-shop.ru/product/5a768842a2f48a5a/ibp-powercom-raptor-rpt-1500ap/"
+]
+
+```
+</details>
 <br><b>Метод - get_all_guid_product(<ожидает массив ссылок полученных из get_all_links_product>)</b>
 <br>парсит guid из ссылок полученных ранее
-<br>schema
+<br>
+<br>
+<details>
+<summary><b>schema</b></summary>
+
 ```
 [
   {
@@ -25,10 +40,16 @@
     "guid": "ffee54cc-ec14-4ebf-b7ba-5306afd51e56"
   },
 ]
+
 ```
-<br><b>Метод - get_all_info_product((<ожидает массив полученный из get_all_guid_product>)</b>
+</details>
+<br><b>Метод - get_all_info_product(<ожидает массив полученный из get_all_guid_product>)</b>
 <br>парсит информацию о товаре
-<br>schema
+<br>
+<br>
+<details>
+<summary><b>schema</b></summary>
+
 ```
 [
   {
@@ -63,5 +84,19 @@
 ]
 ```
 
-Примерное время парсинга всех товаров 2 час +- 20минут
+</details>
+<br>
+<b>Примерное время парсинга всех товаров ~2 час +- 20минут</b>
+</details> 
+<br>
+<br>
+<details> 
+<summary><b>Установка из образа докера</b></summary>
 
+```
+git clone repo
+docker build -f Dockerfile -t dns_shop_parser .
+>> other Dockerfile
+COPY --from=module_dns_shop_parser /wheels/ /
+RUN pip install /dns_shop_parser-0.1-py3-none-any.whl
+```
