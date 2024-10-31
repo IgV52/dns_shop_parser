@@ -47,7 +47,6 @@ class ParserDnsShop:
             yield
         finally:
             assert self.__update_cookies_task is not None
-            await self._client.aclose()
             self.__auto_update_trigger = False
             self.__update_cookies_task.cancel()
 
